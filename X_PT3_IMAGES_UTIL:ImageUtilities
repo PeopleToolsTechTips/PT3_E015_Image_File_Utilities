@@ -1,0 +1,261 @@
+/*********** *********************************************/
+/** PeoopleTools Tech Tips            			            **/
+/** Randy Groncki 2021-09-01          	                **/
+/** peopletoolstechtips@gmail.com                       **/
+/** BI Publisher                                        **/
+/** Image Utilities                    		      		   	**/
+/*********************************************************/
+
+class ImageUtilities
+   method ImageUtilities();
+   method ResizeImageFile(&InFilename As string, &InFileDirectory As string, &InWidth As integer, &InHeight As integer) Returns string;
+   method ConvertToJPG(&InFilename As string) Returns string;
+   method ConvertToJPG_w_Trans(&InFilename As string) Returns string;
+   method SendImageToFile(&Str_ImageRecord As string, &InKey As string) Returns string;
+   method SendImageToFile_W_Name(&Str_ImageRecord As string, &InKey As string, &InNewFileName As string) Returns string;
+   
+   method GenImageDimensions(&SourceFile As string);
+   
+   property integer Image_Height get;
+   property integer Image_Width get;
+   
+private
+   
+   instance integer &Int_Height;
+   instance integer &Int_Width;
+   
+   
+end-class;
+
+
+method ImageUtilities   
+   
+   &Int_Height = 0;
+   &Int_Width = 0;
+   
+end-method;
+
+/* resizes a jpg file to a different size jpg file */
+method ResizeImageFile
+   /+ &InFilename as String, +/
+   /+ &InFileDirectory as String, +/
+   /+ &InWidth as Integer, +/
+   /+ &InHeight as Integer +/
+   /+ Returns String +/
+   
+   Local string &TargetFileName, &TargetFileURL;
+   Local string &SourceFile = &InFileDirectory | &InFilename;
+   
+   
+   If Upper(Right(&SourceFile, 3)) = "JPG" Then
+      &TargetFileName = Left(&InFilename, Len(&InFilename) - 4) | "_scale.jpg";
+   Else
+      &TargetFileName = &InFilename | "_scale.jpg";
+   End-If;
+   
+   If Right(&InFileDirectory, 1) = "/" Then
+      &TargetFileURL = &InFileDirectory | &TargetFileName;
+   Else
+      &TargetFileURL = &InFileDirectory | "/" | &TargetFileName;
+   End-If;
+   
+   rem  MessageBox(0, "", 0, 0, "Source: %1 %2 Target: %3", &SourceFile, Char(10), &TargetFileURL);
+   
+   try
+      
+      /* read input image */
+      Local JavaObject &Jo_InputFile = CreateJavaObject("java.io.File", &SourceFile);
+      Local JavaObject &JO_InputImage = CreateJavaObject("java.awt.image.BufferedImage", 1, 1, 1);
+      Local JavaObject &JO_ImageIO = GetJavaClass("javax.imageio.ImageIO");
+      
+      &JO_InputImage = &JO_ImageIO.read(&Jo_InputFile);
+      
+      /* create output image */
+      Local JavaObject &JO_OutputImage = CreateJavaObject("java.awt.image.BufferedImage", &InWidth, &InHeight, &JO_InputImage.getType());
+      
+      /* scale the image */
+      Local JavaObject &JO_g2d = &JO_OutputImage.createGraphics();
+      &JO_g2d.drawImage(&JO_InputImage, 0, 0, &InWidth, &InHeight, Null);
+      &JO_g2d.dispose();
+      
+      /* extracts extension of output file */
+      Local string &Formatname = "jpg";
+      
+      Local JavaObject &JO_OutputFile = CreateJavaObject("java.io.File", &TargetFileURL);
+      &JO_ImageIO.write(&JO_OutputImage, &Formatname, &JO_OutputFile);
+      
+   catch Exception &e
+      Error &e.ToString();
+   end-try;
+   
+   
+   Return &TargetFileName;
+   
+end-method;
+
+/* converts an existing image format to jpg */
+method ConvertToJPG
+   /+ &InFilename as String +/
+   /+ Returns String +/
+   
+   
+   /* This method only works on images without transparent colors (PNG) */
+   /* Use the ConvertToJPG_w_Trans method if the image has transparencies */
+   
+   Local string &SourceFile = &InFilename;
+   
+   Local string &TargetFile = Left(&InFilename, Len(&InFilename) - 3) | "jpg";
+   
+   try
+      
+      Local JavaObject &joInputStream = CreateJavaObject("java.io.FileInputStream", &SourceFile);
+      Local JavaObject &joBufferedImage = CreateJavaObject("java.awt.image.BufferedImage", 1, 1, 1);
+      
+      Local JavaObject &joImageIO = GetJavaClass("javax.imageio.ImageIO");
+      &joBufferedImage = &joImageIO.read(&joInputStream);
+      
+      /*Write Image to File*/
+      Local JavaObject &joFile = CreateJavaObject("java.io.File", &TargetFile);
+      &joImageIO.write(&joBufferedImage, "jpg", &joFile);
+      
+      
+   catch Exception &e
+      Error &e.ToString();
+      
+   end-try;
+   
+   
+   Return &TargetFile;
+   
+end-method;
+
+method ConvertToJPG_w_Trans
+   /+ &InFilename as String +/
+   /+ Returns String +/
+   
+   /* should the image be a format such as PNG that contains transparencies */
+   /* This method will convert the transparent color to white for the jpg */
+   
+   Local string &SourceFile = &InFilename;
+   
+   Local string &TargetFile = Left(&InFilename, Len(&InFilename) - 3) | "jpg";
+   
+   try
+      
+      /* get source image */
+      Local JavaObject &joInputStream = CreateJavaObject("java.io.FileInputStream", &SourceFile);
+      Local JavaObject &joBufferedImage = CreateJavaObject("java.awt.image.BufferedImage", 1, 1, 1);
+      
+      Local JavaObject &joImageIO = GetJavaClass("javax.imageio.ImageIO");
+      &joBufferedImage = &joImageIO.read(&joInputStream);
+      
+      /* new image */
+      /* Get the java color class so we can tell it what color we want to convert the transparency to */
+      Local JavaObject &joColor = GetJavaClass("java.awt.Color");
+      
+      /* draw a blank palet for the new image in the size of the source image */
+      Local JavaObject &jo_New_BufferedImage = CreateJavaObject("java.awt.image.BufferedImage", &joBufferedImage.getWidth(), &joBufferedImage.getHeight(), 1);
+      
+      /* Get the creategraphics object from our new blank canvas */
+      Local JavaObject &JO_g2d = &jo_New_BufferedImage.createGraphics();
+      
+      /* draw the new image using the source image on a white palet */
+      &JO_g2d.drawImage(&joBufferedImage, 0, 0, &joColor.WHITE, Null);
+      
+      /*Write Image to File*/
+      Local JavaObject &joFile = CreateJavaObject("java.io.File", &TargetFile);
+      &joImageIO.write(&jo_New_BufferedImage, "jpg", &joFile);
+      
+      
+      &JO_g2d.dispose();
+      
+   catch Exception &e
+      Error &e.ToString();
+      
+   end-try;
+   
+   
+   Return &TargetFile;
+   
+end-method;
+
+
+
+
+method SendImageToFile
+   /+ &Str_ImageRecord as String, +/
+   /+ &InKey as String +/
+   /+ Returns String +/
+   
+   Local File &Image_File;
+   Local string &NewFileName, &FQ_Filename_path;
+   Local integer &retcode;
+   
+   /* get file to resolv fully qualified URL of the file */
+   &NewFileName = %UserId | "_" | &InKey | ".jpg";
+   
+   &Image_File = GetFile(&NewFileName, "W");
+   &FQ_Filename_path = &Image_File.Name;
+   &Image_File.Close();
+   
+   
+   REM MessageBox(0, "", 0, 0, "REC: %1", &Str_ImageRecord);
+   
+   &retcode = GetAttachment("RECORD://" | &Str_ImageRecord, &InKey, &FQ_Filename_path);
+   
+   Return &FQ_Filename_path;
+   
+end-method;
+
+method SendImageToFile_W_Name
+   /+ &Str_ImageRecord as String, +/
+   /+ &InKey as String, +/
+   /+ &InNewFileName as String +/
+   /+ Returns String +/
+   
+   Local File &Image_File;
+   Local string &NewFileName, &FQ_Filename_path;
+   Local integer &retcode;
+   
+   /* get file to resolv fully qualified URL of the file */
+   &NewFileName = &InNewFileName;
+   
+   &Image_File = GetFile(&NewFileName, "W");
+   &FQ_Filename_path = &Image_File.Name;
+   &Image_File.Close();
+   
+   
+   &retcode = GetAttachment("RECORD://" | &Str_ImageRecord, &InKey, &FQ_Filename_path);
+   
+   rem MessageBox(0, "", 0, 0, "REC: %1  Key: %2  Return Code: %3  Dest: %4", &Str_ImageRecord, &InKey, &retcode, &FQ_Filename_path);
+   
+   
+   Return &FQ_Filename_path;
+   
+end-method;
+
+method GenImageDimensions
+   /+ &SourceFile as String +/
+   
+   
+   Local JavaObject &joInputStream = CreateJavaObject("java.io.FileInputStream", &SourceFile);
+   
+   Local JavaObject &joImageIO = GetJavaClass("javax.imageio.ImageIO");
+   Local JavaObject &joBufferedImage = CreateJavaObject("java.awt.image.BufferedImage", 1, 1, 1);
+   &joBufferedImage = &joImageIO.read(&joInputStream);
+   
+   &Int_Width = &joBufferedImage.getWidth();
+   &Int_Height = &joBufferedImage.getHeight();
+   
+end-method;
+
+get Image_Height
+   /+ Returns Integer +/
+   Return &Int_Height;
+end-get;
+
+get Image_Width
+   /+ Returns Integer +/
+   Return &Int_Width;
+end-get;
+
