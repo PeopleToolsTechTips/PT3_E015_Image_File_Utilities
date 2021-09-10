@@ -9,19 +9,25 @@ A demonstration with code examples of moving images from PeopleTools tables to f
   Convert image to new type.  Example provided is PNG to JPG
   Resize Image
 
-Walkthrough Documentation: https://peopletoolstechtips.com/file-image-utilities-peoplesoft-forgot
+### Web Posting: https://peopletoolstechtips.com/file-image-utilities-peoplesoft-forgot
 
-YouTube demo: TBD
+### Walkthrough Documentation: See PDF
 
-Contact: 
-   randy@peopletoolstechtips.com
-   PeopleToolsTechTips@Gmail.com
+### YouTube demo: TBD
 
+### Contact:  
+* randy@peopletoolstechtips.com  
+* PeopleToolsTechTips@Gmail.com
 
 This file contains all the objects referenced in the video and document.
 
-Walk Through PDF
-PeopleTools Project is using PeopleTools 8.59.02
-  This contains all the components, pages, records and PeopleCode used in the demonstration.
-  The target database must be minimal 8.58 PeopleTools
+## Walk Through PDF
+* PT3 File Image Utilities.pdf
+
+## PeopleTools Project is using PeopleTools 8.59.02
+  * This contains all the components, pages, records and PeopleCode used in the demonstration.
+  * The target database must be minimal 8.58 PeopleTools
+
+* X_PT3_015_IMAGE_TO_FILE (folder)  
+* X_PT3_015_IMAGE_TO_FILE.zip  
 
