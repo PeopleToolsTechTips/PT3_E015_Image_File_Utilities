@@ -1,4 +1,4 @@
-# PT3 E015 Image File Utilities
+# PT3 E015 Image Utilities PeopleSoft Forgot
 
 PeopleTools Tech Tips    
 Randy Groncki	2021-09-10
@@ -13,7 +13,7 @@ A demonstration with code examples of moving images from PeopleTools tables to f
 
 ### Walkthrough Documentation: See PDF
 
-### YouTube demo: TBD
+### YouTube demo: https://youtu.be/l8btFsUTKyw
 
 ### Contact:  
 * randy@peopletoolstechtips.com  
